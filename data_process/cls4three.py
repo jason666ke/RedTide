@@ -55,6 +55,9 @@ def downsampling(df):
     df_resampled = df_resampled[df_resampled['日期'].isin(full_day_dates)]
     df_resampled.drop(columns=['日期'], inplace=True)
 
+    # 确保赤潮类型为整形
+    df_resampled['赤潮类型'] = df_resampled['赤潮类型'].astype(int)
+    
     return df_resampled.round(3)
 
 # 修改为适合三分类的情况
@@ -169,7 +172,7 @@ def to_ts(df):
         # label = int(round(window['赤潮发生'].mean()))  # round 将均值四舍五入，代表多数时间点发生了赤潮，则判定为发生赤潮
 
         # 计算标签，取众数作为判断的主要赤潮类型
-        label = window['赤潮类型'].mode().iloc[0]
+        label = int(window['赤潮类型'].mode().iloc[0])
 
         sequences.append(sequence)
         labels.append(label)

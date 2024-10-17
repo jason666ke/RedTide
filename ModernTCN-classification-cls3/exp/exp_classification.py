@@ -67,7 +67,7 @@ class Exp_Classification(Exp_Basic):
                 # 使用sigmoid函数计算二分概率
                 # outputs = torch.sigmoid(outputs)
                 
-                pred = outputs.detach()
+                pred = outputs.detach().cpu()
                 loss = criterion(pred, label.long().squeeze().cpu())
                 # loss = criterion(pred, label.float().squeeze().cpu())
                 # loss = criterion(pred, label.float())
