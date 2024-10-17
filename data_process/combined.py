@@ -14,7 +14,7 @@ red_tide_data['赤潮发生'] = 1
 # 指定藻类的名称
 specified_algae = ['夜光藻', '红色中缢虫', '棕囊藻', '球形棕囊藻']
 
-# 增加新列以区分赤潮种类
+# 增加新列以区分赤潮种类（三分类）
 red_tide_data['赤潮类型'] = red_tide_data['赤潮生物'].apply(
     lambda x: 1 if x in specified_algae else 2
 )

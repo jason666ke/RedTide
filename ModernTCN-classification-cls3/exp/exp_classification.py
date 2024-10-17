@@ -20,7 +20,7 @@ class Exp_Classification(Exp_Basic):
     def __init__(self, args):
         super(Exp_Classification, self).__init__(args)
         self.device = torch.device("cuda" if torch.cuda.is_available() and self.args.use_gpu else "cpu")
-        self.best_threshold = 0.5 # 初始化最佳阈值
+        # self.best_threshold = 0.5 # 初始化最佳阈值
 
     def _build_model(self):
         # model input depends on data
@@ -47,8 +47,8 @@ class Exp_Classification(Exp_Basic):
         return model_optim
 
     def _select_criterion(self):
-        # criterion = nn.CrossEntropyLoss()
-        criterion = focal_loss(alpha=0.25, gamma=2)
+        criterion = nn.CrossEntropyLoss()
+        # criterion = focal_loss(alpha=0.25, gamma=2)
         return criterion
 
     def vali(self, vali_data, vali_loader, criterion):
@@ -68,9 +68,9 @@ class Exp_Classification(Exp_Basic):
                 # outputs = torch.sigmoid(outputs)
                 
                 pred = outputs.detach()
-                # loss = criterion(pred, label.long().squeeze().cpu())
+                loss = criterion(pred, label.long().squeeze().cpu())
                 # loss = criterion(pred, label.float().squeeze().cpu())
-                loss = criterion(pred, label.float())
+                # loss = criterion(pred, label.float())
                 total_loss.append(loss.cpu())
 
                 preds.append(outputs.detach())
@@ -81,26 +81,9 @@ class Exp_Classification(Exp_Basic):
         trues = torch.cat(trues, 0).cpu()
         # preds = torch.cat(preds, 0).cpu().numpy()
         # trues = torch.cat(trues, 0).cpu().numpy()
-
-        # probs = torch.nn.functional.softmax(preds)  # (total_samples, num_classes) est. prob. for each class and sample
-        # predictions = torch.argmax(probs, dim=1).cpu().numpy()  # (total_samples,) int class index for each sample
-        # trues = trues.flatten().cpu().numpy()
         
-        # 动态调整分类阈值以优化F1值
-        best_f1 = 0
-        best_threshold = 0.5
-        for threshold in np.arange(0.1, 0.9, 0.1):
-            predictions = (preds > threshold).cpu().numpy()
-            f1,tp,fp,tn,fn = cal_f1_score(predictions, trues)
-            if f1 > best_f1:
-                best_f1 = f1
-                best_threshold = threshold
-
-        self.best_threshold = best_threshold
-        print("Best Threshold: ", self.best_threshold)
-        # 将sigmoid输出的概率转化为标签（0或1）
-        # predictions = (preds > 0.5).cpu().numpy()
-        predictions = (preds > self.best_threshold).numpy()
+        # 使用softmax获取概率分布, 并用argmax得到预测概率类别
+        predictions = torch.argmax(torch.softmax(preds, dim=1), dim=1).cpu().numpy()
         trues = trues.numpy()
 
         accuracy = cal_accuracy(predictions, trues)
@@ -157,9 +140,9 @@ class Exp_Classification(Exp_Basic):
                 # 使用sigmoid 进行二分类的概率计算
                 # outputs = torch.sigmoid(outputs)
 
-                # loss = criterion(outputs, label.long().squeeze(-1))
+                loss = criterion(outputs, label.long().squeeze(-1))
                 # loss = criterion(outputs, label.float().squeeze(-1))
-                loss = criterion(outputs, label.float())
+                # loss = criterion(outputs, label.float())
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
@@ -177,15 +160,11 @@ class Exp_Classification(Exp_Basic):
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
             vali_loss, val_accuracy, val_f1, val_tp, val_fp, val_tn, val_fn = self.vali(vali_data, vali_loader, criterion)
-            # self.best_threshold = best_threshold
-            # test_loss, test_accuracy, test_f1 = self.vali(test_data, test_loader, criterion)
-
-            # print(
-            #     "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Test Loss: {5:.3f} Test Acc: {6:.3f}"
-            #     .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, test_loss, test_accuracy))
+            
             print(
-                "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5:.3f} Vali TP: {6:.3f} Vali FP: {7:.3f} Vali TN: {8:.3f} Vali FN: {9:.3f} Best Threshold: {10:.3F}"
-                .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, val_f1, val_tp, val_fp, val_tn, val_fn, self.best_threshold))
+                "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5:.3f} Vali TP: {6:.3f} Vali FP: {7:.3f} Vali TN: {8:.3f} Vali FN: {9:.3f}"
+                .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, val_f1, val_tp, val_fp, val_tn, val_fn))
+            
             # early_stopping(-val_accuracy, self.model, path)
             early_stopping(-val_f1, self.model, path) # 早停机制改为对F1敏感
             if early_stopping.early_stop:
@@ -221,25 +200,18 @@ class Exp_Classification(Exp_Basic):
                 # 获取模型输出
                 outputs = self.model(batch_x, padding_mask, None, None)
                 # 使用sigmoid 进行二分类计算
-                outputs = torch.sigmoid(outputs)
+                # outputs = torch.sigmoid(outputs)
 
                 preds.append(outputs.detach())
                 trues.append(label)
 
         preds = torch.cat(preds, 0)
         trues = torch.cat(trues, 0)
-        # print('test shape:', preds.shape, trues.shape)
+        print('test shape:', preds.shape, trues.shape)
 
-        # probs = torch.nn.functional.softmax(preds)  # (total_samples, num_classes) est. prob. for each class and sample
-        # predictions = torch.argmax(probs, dim=1).cpu().numpy()  # (total_samples,) int class index for each sample
-        # trues = trues.flatten().cpu().numpy()
-
-        # 将sigmoid函数将输出的概率转化为类别标签
-        # predictions = (preds > 0.5).cpu().numpy()  # (total_samples,) int class index for each sample
-        print("Best Threshold: ", self.best_threshold)
-        predictions = (preds > self.best_threshold).cpu().numpy()
+        # 计算预测结果类别
+        predictions = torch.argmax(torch.softmax(preds, dim=1), dim=1).cpu().numpy()
         trues = trues.cpu().numpy()
-        # trues = trues.flatten().cpu().numpy()
         
         accuracy = cal_accuracy(predictions, trues)
         f1, tp, fp, tn, fn = cal_f1_score(predictions, trues)
