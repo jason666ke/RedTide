@@ -57,7 +57,7 @@ def downsampling(df):
 
     # 确保赤潮类型为整形
     df_resampled['赤潮类型'] = df_resampled['赤潮类型'].astype(int)
-    
+
     return df_resampled.round(3)
 
 # 修改为适合三分类的情况
@@ -282,5 +282,27 @@ if __name__ == "__main__":
     for _, (df, path) in data_dict.items():
         sequence, label = to_ts(df)
         save_ts(sequence, label, path, 'AllRedTide')
+    
+    # 统计训练集中的各类数据
+    train_class_counts = final_train['赤潮类型'].value_counts().sort_index()
+    print("训练集中各类数据统计:")
+    print(train_class_counts)
+    
+    # 统计测试集中的各类数据
+    test_class_counts = final_test['赤潮类型'].value_counts().sort_index()
+    print("测试集中各类数据统计:")
+    print(test_class_counts)
+
+    # 导出为xlsx文件
+    train_xlsx_path = '/root/lhq/data/data_processed_cls3/AllRedTide_TRAIN.xlsx'
+    test_xlsx_path = '/root/lhq/data/data_processed_cls3/AllRedTide_TEST.xlsx'
+
+    final_train.to_excel(train_xlsx_path, index=False)
+    final_test.to_excel(test_xlsx_path, index=False)
+    
+    print(f"训练集已导出为: {train_xlsx_path}")
+    print(f"测试集已导出为: {test_xlsx_path}")
+
+    
     
 

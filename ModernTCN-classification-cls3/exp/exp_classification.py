@@ -165,8 +165,8 @@ class Exp_Classification(Exp_Basic):
                 "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5:.3f} Vali TP: {6:.3f} Vali FP: {7:.3f} Vali TN: {8:.3f} Vali FN: {9:.3f}"
                 .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, val_f1, val_tp, val_fp, val_tn, val_fn))
             
-            # early_stopping(-val_accuracy, self.model, path)
-            early_stopping(-val_f1, self.model, path) # 早停机制改为对F1敏感
+            early_stopping(-val_accuracy, self.model, path)
+            # early_stopping(-val_f1, self.model, path) # 早停机制改为对F1敏感
             if early_stopping.early_stop:
                 print("Early stopping")
                 break
