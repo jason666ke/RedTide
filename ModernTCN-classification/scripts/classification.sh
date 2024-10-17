@@ -1,0 +1,25 @@
+python -u run.py \
+  --task_name classification \
+  --is_training 1 \
+  --root_path ./all_datasets/AllRedTide/ \
+  --data UEA \
+  --model_id AllRedTide \
+  --model ModernTCN \
+  --seq_len 24 \
+  --ffn_ratio 1 \
+  --patch_size 1 \
+  --patch_stride 1 \
+  --num_blocks 1 1 \
+  --large_size 13 13 \
+  --small_size 5 5 \
+  --dims 128 256 \
+  --head_dropout 0.0 \
+  --class_dropout 0.0 \
+  --dropout 0.5 \
+  --itr 1 \
+  --learning_rate 0.0001 \
+  --batch_size 32 \
+  --train_epochs 100 \
+  --patience 10 \
+  --des Exp \
+  --use_multi_scale False

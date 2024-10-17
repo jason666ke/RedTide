@@ -1,0 +1,4 @@
+ModernTCN-classification/all_datasets/*
+ModernTCN-classification-cls3/all_datasets/*
+!ModernTCN-classification/all_datasets/.gitkeep
+!ModernTCN-classification-cls3/all_datasets/.gitkeep
