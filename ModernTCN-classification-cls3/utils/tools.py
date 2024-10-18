@@ -151,21 +151,30 @@ def adjustment(gt, pred):
 def cal_accuracy(y_pred, y_true):
     return np.mean(y_pred == y_true)
 
-def cal_f1_score(y_pred, y_true):
+# 三分类计算f1
+def cal_f1_score(y_pred, y_true, num_classes=3):
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
     
-    TP = np.sum((y_pred == 1) & (y_true == 1))
-    FP = np.sum((y_pred == 1) & (y_true == 0))
-    TN = np.sum((y_pred == 0) & (y_true == 0))
-    FN = np.sum((y_pred == 0) & (y_true == 1))
+    f1_scores = []
+    TP = np.zeros(num_classes)
+    FP = np.zeros(num_classes)
+    TN = np.zeros(num_classes)
+    FN = np.zeros(num_classes)
     
-    precision = TP / (TP + FP) if (TP + FP) > 0 else 0
-    recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+    for i in range(num_classes):
+        TP[i] = np.sum((y_pred == i) & (y_true == i))
+        FP[i] = np.sum((y_pred == i) & (y_true != i))
+        FN[i] = np.sum((y_pred != i) & (y_true == i))
+        TN[i] = np.sum((y_pred != i) & (y_true != i))
+
+        precision = TP[i] / (TP[i] + FP[i]) if (TP[i] + FP[i]) > 0 else 0
+        recall = TP[i] / (TP[i] + FN[i]) if (TP[i] + FN[i]) > 0 else 0
+
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        f1_scores.append(f1_score)
     
-    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-    
-    return f1_score, TP, FP, TN, FN
+    return f1_scores, TP, FP, TN, FN
 
 def sample_data(features, labels):
     labels_list = labels.values.squeeze()

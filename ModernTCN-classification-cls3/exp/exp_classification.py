@@ -159,11 +159,13 @@ class Exp_Classification(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            vali_loss, val_accuracy, val_f1, val_tp, val_fp, val_tn, val_fn = self.vali(vali_data, vali_loader, criterion)
+            vali_loss, val_accuracy, val_f1_scores, val_tp, val_fp, val_tn, val_fn = self.vali(vali_data, vali_loader, criterion)
             
+            f1_str = ", ".join([f"{score: .3f}" for score in val_f1_scores]) # 格式化 F1 分数为字符串
+
             print(
-                "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5:.3f} Vali TP: {6:.3f} Vali FP: {7:.3f} Vali TN: {8:.3f} Vali FN: {9:.3f}"
-                .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, val_f1, val_tp, val_fp, val_tn, val_fn))
+                "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5} Vali TP: {6} Vali FP: {7} Vali TN: {8} Vali FN: {9}"
+                .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, f1_str, val_tp, val_fp, val_tn, val_fn))
             
             early_stopping(-val_accuracy, self.model, path)
             # early_stopping(-val_f1, self.model, path) # 早停机制改为对F1敏感
@@ -199,9 +201,6 @@ class Exp_Classification(Exp_Basic):
 
                 # 获取模型输出
                 outputs = self.model(batch_x, padding_mask, None, None)
-                # 使用sigmoid 进行二分类计算
-                # outputs = torch.sigmoid(outputs)
-
                 preds.append(outputs.detach())
                 trues.append(label)
 
@@ -214,7 +213,7 @@ class Exp_Classification(Exp_Basic):
         trues = trues.cpu().numpy()
         
         accuracy = cal_accuracy(predictions, trues)
-        f1, tp, fp, tn, fn = cal_f1_score(predictions, trues)
+        f1_scores, tp, fp, tn, fn = cal_f1_score(predictions, trues)
 
         # result save
         folder_path = './results/' + setting + '/'
@@ -222,7 +221,7 @@ class Exp_Classification(Exp_Basic):
             os.makedirs(folder_path)
 
         print('accuracy:{}'.format(accuracy))
-        print('f1 score:{}'.format(f1))
+        print('f1 scores:{}'.format(f1_scores))
         print('tp:{}'.format(tp))
         print('fp:{}'.format(fp))
         print('tn:{}'.format(tn))
@@ -230,7 +229,7 @@ class Exp_Classification(Exp_Basic):
         f = open("result_classification.txt", 'a')
         f.write(setting + "  \n")
         f.write('accuracy:{}'.format(accuracy))
-        f.write('f1 score: {}\n'.format(f1))
+        f.write('f1 score: {}\n'.format(f1_scores))
         f.write('tp: {}\nfp: {}\ntn: {}\nfn: {}\n'.format(tp, fp, tn, fn))
         f.write('\n')
         f.write('\n')
