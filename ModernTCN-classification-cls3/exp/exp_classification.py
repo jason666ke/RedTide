@@ -1,6 +1,6 @@
 from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
-from utils.tools import EarlyStopping, adjust_learning_rate, cal_accuracy, cal_f1_score
+from utils.tools import EarlyStopping, adjust_learning_rate, cal_accuracy, cal_f1_score, cal_each_class_accuracy
 import torch
 import torch.nn as nn
 from torch import optim
@@ -47,8 +47,8 @@ class Exp_Classification(Exp_Basic):
         return model_optim
 
     def _select_criterion(self):
-        criterion = nn.CrossEntropyLoss()
-        # criterion = focal_loss(alpha=0.25, gamma=2)
+        # criterion = nn.CrossEntropyLoss()
+        criterion = focal_loss(alpha=0.25, gamma=2)
         return criterion
 
     def vali(self, vali_data, vali_loader, criterion):
@@ -64,9 +64,6 @@ class Exp_Classification(Exp_Basic):
 
                 # 获取模型输出
                 outputs = self.model(batch_x, padding_mask, None, None)
-                # 使用sigmoid函数计算二分概率
-                # outputs = torch.sigmoid(outputs)
-                
                 pred = outputs.detach().cpu()
                 loss = criterion(pred, label.long().squeeze().cpu())
                 # loss = criterion(pred, label.float().squeeze().cpu())
@@ -79,8 +76,6 @@ class Exp_Classification(Exp_Basic):
         total_loss = np.average(total_loss)
         preds = torch.cat(preds, 0).cpu()  # 先合并为张量
         trues = torch.cat(trues, 0).cpu()
-        # preds = torch.cat(preds, 0).cpu().numpy()
-        # trues = torch.cat(trues, 0).cpu().numpy()
         
         # 使用softmax获取概率分布, 并用argmax得到预测概率类别
         predictions = torch.argmax(torch.softmax(preds, dim=1), dim=1).cpu().numpy()
@@ -214,6 +209,7 @@ class Exp_Classification(Exp_Basic):
         
         accuracy = cal_accuracy(predictions, trues)
         f1_scores, tp, fp, tn, fn = cal_f1_score(predictions, trues)
+        class_stats = cal_each_class_accuracy(predictions, trues)
 
         # result save
         folder_path = './results/' + setting + '/'

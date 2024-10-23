@@ -23,10 +23,18 @@ def print_file_head(file_path, num_rows=50):
     print("每一列的空值数量：")
     print(null_counts)
 
+    # 时间数据跨度
+    df = df.sort_values(by='监测时间')
+    print(f"最新数据时间: ", df['监测时间'].max())
+    print(f"最原始数据时间: ", df['监测时间'].min())
+    time_span = df['监测时间'].max() - df['监测时间'].min()
+    print("时间跨度: ", time_span)
+
     # 打印前num_rows行
     print(tabulate(df.head(num_rows), headers='keys', tablefmt='grid'))
     redtide_count = df['赤潮类型'].value_counts()
     print(redtide_count)
+
     # col_drop = ['硝酸盐','亚硝酸盐','磷酸盐','氨氮',
     #         '水深','流速','流向','有效波高','平均波向','有效波周期','碘131','钴60','铊208',
     #         '钾40','铋214','铅214','镭226','钍232','铯134','铯137','站点名称','海域','日期']

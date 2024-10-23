@@ -21,7 +21,7 @@ import torch.nn as nn
 import numpy as np
 import pdb
 import torch.nn.functional as F
-
+import torch
 def divide_no_nan(a, b):
     """
     a/b where the resulted NaN or Inf are replaced by 0.
@@ -98,10 +98,15 @@ class focal_loss(nn.Module):
         self.reduction = reduction
 
     def forward(self, inputs, targets):
-        # BCE_loss = F.cross_entropy(inputs, targets, reduction='none')  # 计算交叉熵损失
-        BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
-        pt = t.exp(-BCE_loss)  # 获取预测的概率
-        F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss  # Focal Loss 公式
+        # 计算交叉熵损失，inputs是预测的logits，targets是真实的类别索引
+        CE_loss = F.cross_entropy(inputs, targets, reduction='none')  # 计算交叉熵损失
+        # 获取softmax后的概率
+        probs = torch.softmax(inputs, dim=1)
+        # 根据targets 获取对应类别的概率
+        pt = probs.gather(1, targets.unsqueeze(1)).squeeze(1)
+        # 计算focal_loss
+        F_loss = self.alpha * (1 - pt) ** self.gamma * CE_loss
+
         if self.reduction == 'mean':
             return F_loss.mean()
         elif self.reduction == 'sum':
