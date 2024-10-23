@@ -171,16 +171,22 @@ def sample_data(features, labels):
     labels_list = labels.values.squeeze()
     sample_cnt = pd.value_counts(labels_list)
 
-    # pos_ratio = 1 / 3  
-    # neg_ratio = 2 / 3  
+    pos_ratio = 3 / 4  
+    neg_ratio = 1 / 4 
 
-    # weights = { 
-    #     0: neg_ratio / class_sample_count[0],  
-    #     1: pos_ratio / class_sample_count[1], 
-    # }
-    weights = 1. / sample_cnt
-    samples_weight = torch.tensor(np.array(weights[labels_list]), dtype=torch.float32)
+    weights = { 
+        0: neg_ratio / sample_cnt[0],  
+        1: pos_ratio / sample_cnt[1], 
+    }
+    # 为每个样本分配权重
+    samples_weight = torch.tensor(np.array([weights[label] for label in labels_list]), dtype=torch.float32)
+    
+    # 进行采样
     sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
+
+    # weights = 1. / sample_cnt
+    # samples_weight = torch.tensor(np.array(weights[labels_list]), dtype=torch.float32)
+    # sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
 
     return sampler
 

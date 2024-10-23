@@ -149,26 +149,62 @@ def adjustment(gt, pred):
     return gt, pred
 
 def cal_accuracy(y_pred, y_true):
-    return np.mean(y_pred == y_true)
+    accuracy = np.mean(y_pred == y_true)
+    return accuracy
 
-def cal_f1_score(y_pred, y_true):
+def cal_each_class_accuracy(y_pred, y_true):
+    # 确保y_pred和y_true是一维数组
+    y_pred = np.array(y_pred).squeeze()
+    y_true = np.array(y_true).squeeze()
+
+    unique_classes = np.unique(y_true)
+    
+    # 初始化类别统计字典
+    class_stats = {cls: {'correct': 0, 'incorrect': 0} for cls in unique_classes}
+
+    # 遍历预测结果和真实值，更新各类别的正确和错误计数
+    for pred, true in zip(y_pred, y_true):
+        if pred == true:
+            class_stats[true]['correct'] += 1
+        else:
+            class_stats[true]['incorrect'] += 1
+    
+    # 打印各类别的统计信息
+    for cls in unique_classes:
+        print(f"类别{cls}：预测正确{class_stats[cls]['correct']}, 预测错误{class_stats[cls]['incorrect']}")
+    
+    return class_stats
+
+# 三分类计算f1
+def cal_f1_score(y_pred, y_true, num_classes=3):
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
     
-    TP = np.sum((y_pred == 1) & (y_true == 1))
-    FP = np.sum((y_pred == 1) & (y_true == 0))
-    TN = np.sum((y_pred == 0) & (y_true == 0))
-    FN = np.sum((y_pred == 0) & (y_true == 1))
+    f1_scores = []
+    TP = np.zeros(num_classes)
+    FP = np.zeros(num_classes)
+    TN = np.zeros(num_classes)
+    FN = np.zeros(num_classes)
     
-    precision = TP / (TP + FP) if (TP + FP) > 0 else 0
-    recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+    for i in range(num_classes):
+        TP[i] = np.sum((y_pred == i) & (y_true == i))
+        FP[i] = np.sum((y_pred == i) & (y_true != i))
+        FN[i] = np.sum((y_pred != i) & (y_true == i))
+        TN[i] = np.sum((y_pred != i) & (y_true != i))
+
+        precision = TP[i] / (TP[i] + FP[i]) if (TP[i] + FP[i]) > 0 else 0
+        recall = TP[i] / (TP[i] + FN[i]) if (TP[i] + FN[i]) > 0 else 0
+
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        f1_scores.append(f1_score)
     
-    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-    
-    return f1_score, TP, FP, TN, FN
+    return f1_scores, TP, FP, TN, FN
 
 def sample_data(features, labels):
     labels_list = labels.values.squeeze()
+    sample_cnt = pd.value_counts(labels_list)
+
+    # 采样前的类别分布
     sample_cnt = pd.value_counts(labels_list)
 
     # 定义类别0为“赤潮未发生”，类别1和2为赤潮类型1和类型2
@@ -192,6 +228,15 @@ def sample_data(features, labels):
     
     # 进行采样
     sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
+
+    # 打印采样前后的类别分别
+    print("采样前的类别分布： ", sample_cnt)
+
+    sampled_indices = list(sampler)
+    sampled_labels = labels.iloc[sampled_indices].values.squeeze()
+    sampled_cnt = pd.value_counts(sampled_labels)
+
+    print("采样后的比例： ", sampled_cnt)
 
     return sampler
 

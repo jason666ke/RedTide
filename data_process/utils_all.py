@@ -28,7 +28,6 @@ def remove_nulls(df):
     df_cleaned = df[~(has_nulls & no_red_tide)]
     return df_cleaned
 
-
 def downsampling(df):
     df['监测时间'] = pd.to_datetime(df['监测时间'])
     df.set_index('监测时间', inplace=True)

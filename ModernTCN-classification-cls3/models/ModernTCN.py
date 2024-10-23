@@ -270,8 +270,8 @@ class ModernTCN(nn.Module):
             self.act_class = F.gelu
             self.class_dropout = nn.Dropout(self.class_drop)
 
-            # self.head_class = nn.Linear(self.n_vars[0]*self.head_nf,self.class_num)
-            self.head_class = nn.Linear(self.n_vars[0]*self.head_nf, 1)
+            self.head_class = nn.Linear(self.n_vars[0]*self.head_nf,self.class_num)
+            # self.head_class = nn.Linear(self.n_vars[0]*self.head_nf, 1)
 
 
     def forward_feature(self, x, te=None):

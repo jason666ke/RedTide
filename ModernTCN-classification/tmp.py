@@ -22,7 +22,7 @@ data_dict = {
 }
 
 args_data = 'UEA'
-args_root_path = '/Users/hlam/mytask/code/RedTide/ModernTCN-classification/all_datasets/RedTide/'
+args_root_path = '/root/lhq/RedTide/ModernTCN-classification/all_datasets/RedTide/'
 flag = 'TRAIN'
 batch_size = 32
 shuffle_flag = False
@@ -53,24 +53,22 @@ desired_neg_ratio = 2 / 3  # 负样本占 2/3
 num_samples = len(labels_list)
 
 # 计算每个类别的采样权重
-# weights = { 
-#     0: desired_neg_ratio / class_sample_count[0],  # 负样本权重
-#     1: desired_pos_ratio / class_sample_count[1],  # 正样本权重
-# }
-weights = 1. / class_sample_count
+pos_ratio = 3 / 4  
+neg_ratio = 1 / 4 
 
-# 3. 为每个样本分配权重
-samples_weight = weights[labels_list]
-# print(samples_weight)
+weights = { 
+    0: neg_ratio / class_sample_count[0],  
+    1: pos_ratio / class_sample_count[1], 
+}
+# 为每个样本分配权重
+samples_weight = torch.tensor(np.array([weights[label] for label in labels_list]), dtype=torch.float32)
 
-# 确保 samples_weight 是 numpy 数组，而不是 pandas Series
-samples_weight = np.array(samples_weight)
-
-# 将权重转换为 PyTorch tensor
-samples_weight = torch.tensor(samples_weight, dtype=torch.float32)
-
-# 使用 WeightedRandomSampler
+# 进行采样
 sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
+
+# weights = 1. / class_sample_count
+# samples_weight = torch.tensor(np.array(weights[labels_list]), dtype=torch.float32)
+# sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
 
 data_loader = DataLoader(
     data_set,

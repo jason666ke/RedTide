@@ -5,6 +5,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.model_selection import cross_val_score
 from sklearn.impute import SimpleImputer
+from sklearn.ensemble import RandomForestRegressor
 import os
 
 # load .xlsx
@@ -228,4 +229,47 @@ print(df)
 #     df.to_csv(output_path, index=False)
 
 #     print("{} is successfully processed!".format(name))
+def sliding_windows(df):
+    window = 96
+    numeric_columns = df.select_dtypes(include=['float64']).columns
+    for column in numeric_columns:
+        if df[column].isnull().sum() == 0:
+            continue
 
+        moving_avg = df[column].rolling(window=window, min_periods=1).mean()
+        df[column] = df[column].fillna(moving_avg)
+    return df
+
+def data_process(df):
+    df = sliding_windows(df)
+    # draw_plot_df(df)
+    df = random_forest_predict(df)
+    return df
+
+def random_forest_predict(df):
+    # Filling in missing values
+    df_copy = df.copy()
+    numeric_columns = df.select_dtypes(include=['float64']).columns
+    df_copy[numeric_columns] = df_copy[numeric_columns].fillna(df[numeric_columns].median())
+
+    for column in numeric_columns:
+        print(f"Processing column: {column}")
+        if df[column].isnull().sum() == 0:
+            continue
+
+        features = df_copy[numeric_columns].drop(columns=[column])
+        target = df[column]
+
+        X_train = features[target.notnull()]
+        y_train = target[target.notnull()]
+        X_test = features[target.isnull()]
+
+        if len(X_train) == 0 or len(X_test) == 0:
+            print(f"Skipping column {column} due to insufficient data.")
+            continue
+
+        rf = RandomForestRegressor(n_estimators=80, n_jobs=-1, random_state=0)
+        rf.fit(X_train, y_train)
+
+        predicted_values = rf.predict(X_test)
+        df.loc[df[column].isnull(), column] = predicted_values
