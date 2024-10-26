@@ -124,6 +124,7 @@ parser.add_argument('--anomaly_ratio', type=float, default=0.25, help='prior ano
 
 # classfication task
 parser.add_argument('--class_dropout', type=float, default=0.05, help='classfication dropout')
+parser.add_argument('--thrd', type=float, default=0.5, help='classfication threshold')
 
 args = parser.parse_args()
 
@@ -194,22 +195,24 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
     else:
         ii = 0
-        setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(args.model_id,
-                                                                                                      args.model,
-                                                                                                      args.data,
-                                                                                                      args.features,
-                                                                                                      args.seq_len,
-                                                                                                      args.label_len,
-                                                                                                      args.pred_len,
-                                                                                                      args.d_model,
-                                                                                                      args.n_heads,
-                                                                                                      args.e_layers,
-                                                                                                      args.d_layers,
-                                                                                                      args.d_ff,
-                                                                                                      args.factor,
-                                                                                                      args.embed,
-                                                                                                      args.distil,
-                                                                                                      args.des, ii)
+        setting = '{}_{}_{}_ft{}_sl{}_pl{}_dim{}_nb{}_lk{}_sk{}_ffr{}_ps{}_str{}_multi{}_merged{}_{}_{}'.format(
+                args.model_id,
+                args.model,
+                args.data,
+                args.features,
+                args.seq_len,
+                args.pred_len,
+                args.dims[0],
+                args.num_blocks[0],
+                args.large_size[0],
+                args.small_size[0],
+                args.ffn_ratio,
+                args.patch_size,
+                args.patch_stride,
+                args.use_multi_scale,
+                args.small_kernel_merged,
+                args.des,
+                ii)
 
         exp = Exp(args)  # set experiments
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))

@@ -61,8 +61,9 @@ def data_provider(args, flag):
             root_path=args.root_path,
             flag=flag,
         )
+
         sampler = sample_data(data_set.feature_df, data_set.labels_df)
-        # # pdb.set_trace()
+        # pdb.set_trace()
         # 对训练集和测试集做区分
         if flag == 'TEST':
             # pdb.set_trace()
@@ -84,15 +85,16 @@ def data_provider(args, flag):
                 collate_fn=lambda x: collate_fn(x, max_len=args.seq_len),
                 sampler=sampler # 训练时使用采样器
             )
+
         # data_loader = DataLoader(
         #     data_set,
         #     batch_size=batch_size,
         #     shuffle=shuffle_flag,
         #     num_workers=args.num_workers,
         #     drop_last=drop_last,
-        #     collate_fn=lambda x: collate_fn(x, max_len=args.seq_len),
-        #     sampler=sampler # 训练时使用采样器
+        #     collate_fn=lambda x: collate_fn(x, max_len=args.seq_len)
         # )
+
         return data_set, data_loader
     
     else:

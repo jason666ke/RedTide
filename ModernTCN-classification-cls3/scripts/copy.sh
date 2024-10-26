@@ -1,9 +1,9 @@
-cp /root/lhq/data/data_processed_cls2/大亚湾东山_2101/AllRedTide_TRAIN.ts all_datasets/AllRedTide
-cp /root/lhq/data/data_processed_cls2/大亚湾东山_2101/AllRedTide_TEST.ts all_datasets/AllRedTide
+cp /root/lhq/data/data_processed_cls3/雨量浊度氧化还原电位风速风向/AllRedTide_TRAIN.ts all_datasets/AllRedTideCls3
+cp /root/lhq/data/data_processed_cls3/大亚湾东山_2101/AllRedTide_TEST.ts all_datasets/AllRedTideCls3
 python -u run.py \
   --task_name classification \
   --is_training 0 \
-  --root_path ./all_datasets/AllRedTide/ \
+  --root_path ./all_datasets/AllRedTideCls3/ \
   --data UEA \
   --model_id AllRedTide \
   --model ModernTCN \
@@ -22,7 +22,6 @@ python -u run.py \
   --learning_rate 0.0001 \
   --batch_size 32 \
   --train_epochs 100 \
-  --patience 20\
+  --patience 10 \
   --des Exp \
-  --use_multi_scale False \
-  --thrd 0.8
+  --use_multi_scale False

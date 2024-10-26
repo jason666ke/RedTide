@@ -171,8 +171,8 @@ def sample_data(features, labels):
     labels_list = labels.values.squeeze()
     sample_cnt = pd.value_counts(labels_list)
 
-    pos_ratio = 3 / 4  
-    neg_ratio = 1 / 4 
+    pos_ratio = 7/8  
+    neg_ratio = 1/8 
 
     weights = { 
         0: neg_ratio / sample_cnt[0],  
@@ -187,6 +187,15 @@ def sample_data(features, labels):
     # weights = 1. / sample_cnt
     # samples_weight = torch.tensor(np.array(weights[labels_list]), dtype=torch.float32)
     # sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
+
+    # 打印采样前后的类别分别
+    print("采样前的类别分布： ", sample_cnt)
+
+    sampled_indices = list(sampler)
+    sampled_labels = labels.iloc[sampled_indices].values.squeeze()
+    sampled_cnt = pd.value_counts(sampled_labels)
+
+    print("采样后的比例： ", sampled_cnt)
 
     return sampler
 

@@ -3,6 +3,7 @@ from tabulate import tabulate
 import os
 import argparse
 import re
+import datetime
 
 def print_file_head(file_path, num_rows=50):
     # 获取文件扩展名
@@ -26,20 +27,20 @@ def print_file_head(file_path, num_rows=50):
 
     # 打印前num_rows行
     print(tabulate(df.head(num_rows), headers='keys', tablefmt='grid'))
- 
-    # col_drop = ['硝酸盐','亚硝酸盐','磷酸盐','氨氮',
-    #         '水深','流速','流向','有效波高','平均波向','有效波周期','碘131','钴60','铊208',
-    #         '钾40','铋214','铅214','镭226','钍232','铯134','铯137','站点名称','海域','日期']
-    # df = df.drop(columns=col_drop)
 
-    # df.loc[:, '年份'] = pd.to_datetime(df['监测时间']).dt.year
+    # 打印“监测时间”列中每个日期的出现次数
+    # date_counts = pd.to_datetime(df['监测时间']).dt.date.value_counts()
+    # print("‘监测时间’列中每个日期的出现次数如下：")
+    # print(date_counts)
+    date_counts = pd.to_datetime(df['监测时间']).dt.date.value_counts()
+    march_2022_counts = date_counts[(date_counts.index >= datetime.date(2022, 3, 1)) & (date_counts.index <= datetime.date(2022, 3, 31))]
+    print("‘监测时间’列中2022年3月的日期及出现次数如下：")
+    print(march_2022_counts)
 
     value_counts = df['赤潮类型'].value_counts()
-
     print("‘赤潮类别’列中每个类型的数量如下：")
     print(value_counts)
 
-    # df = df.drop(columns=['年份'])
 
 # 定义表头清理函数
 def clean_column_name(col_name):

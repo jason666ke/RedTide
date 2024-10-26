@@ -20,7 +20,7 @@ class Exp_Classification(Exp_Basic):
     def __init__(self, args):
         super(Exp_Classification, self).__init__(args)
         self.device = torch.device("cuda" if torch.cuda.is_available() and self.args.use_gpu else "cpu")
-        self.best_threshold = 0.5 # 初始化最佳阈值
+        self.best_threshold = self.args.thrd # 初始化最佳阈值
 
     def _build_model(self):
         # model input depends on data
@@ -202,8 +202,37 @@ class Exp_Classification(Exp_Basic):
     def test(self, setting, test=0):
         test_data, test_loader = self._get_data(flag='TEST')
         if test:
-            print('loading model')
-            self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
+            print('Loading model checkpoint...')
+            checkpoint = torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth'))
+            
+            # # 打印模型结构
+            # print("Model Structure:")
+            # print(self.model)
+
+            # # 比较 checkpoint 和 model 的参数形状
+            # mismatched_layers = []
+            # for name, param in self.model.named_parameters():
+            #     if name in checkpoint:
+            #         if param.shape != checkpoint[name].shape:
+            #             mismatched_layers.append((name, param.shape, checkpoint[name].shape))
+            #             print(f"Mismatch found in layer '{name}': model shape {param.shape}, checkpoint shape {checkpoint[name].shape}")
+            #     else:
+            #         print(f"Parameter '{name}' is missing in checkpoint.")
+
+            # # 打印所有不匹配的层
+            # if mismatched_layers:
+            #     print("\nLayers with shape mismatches:")
+            #     for layer_name, model_shape, checkpoint_shape in mismatched_layers:
+            #         print(f"  - {layer_name}: model shape {model_shape}, checkpoint shape {checkpoint_shape}")
+            # else:
+            #     print("All layers match in shape between model and checkpoint.")
+            
+            # 尝试加载 state_dict
+            try:
+                self.model.load_state_dict(checkpoint)
+                print("Checkpoint loaded successfully.")
+            except RuntimeError as e:
+                print("Error loading checkpoint:", e)
 
         preds = []
         trues = []
@@ -239,6 +268,8 @@ class Exp_Classification(Exp_Basic):
         print("Best Threshold: ", self.best_threshold)
         predictions = (preds > self.best_threshold).cpu().numpy()
         trues = trues.cpu().numpy()
+        print(trues)
+        print(predictions)
         # trues = trues.flatten().cpu().numpy()
         
         accuracy = cal_accuracy(predictions, trues)

@@ -37,7 +37,7 @@ def nan_process(df):
     for column in df.columns:
         if not pd.api.types.is_float_dtype(df[column]):
             continue
-        # print(f"滑动窗口处理列: {column}")
+        print(f"滑动窗口处理列: {column}")
         
         if df[column].notnull().all():
             continue  
@@ -52,27 +52,18 @@ def nan_process(df):
     # 删除非空值列数小于一半的行
     df = df[df[cols_to_check].notnull().sum(axis=1) >= half_cols]
 
-    # # 前向填充
-    # if df.isnull().values.any():
-    #     for column in df.columns:
-    #         if df[column].isnull().any():
-    #             print(f"前向填充列: {column}")
-    #             df.loc[:, column] = df.apply(lambda row: forward_fill(row, df, column), axis=1)
-
     # 随机森林填充
     df = random_forest_predict(df)
     
-    # return df.round(3)
     return df
 
 def random_forest_predict(df):
-    # Filling in missing values
     df_copy = df.copy()
     numeric_columns = df.select_dtypes(include=['float64']).columns
     df_copy[numeric_columns] = df_copy[numeric_columns].fillna(df[numeric_columns].median())
 
     for column in numeric_columns:
-        # print(f"随机森林处理列: {column}")
+        print(f"随机森林处理列: {column}")
         if df[column].isnull().sum() == 0:
             continue
 
@@ -99,7 +90,7 @@ def forward_fill(row, df, column):
     if pd.notnull(row[column]):
         return row[column]
     else:
-        fill_rows = df[(df['赤潮类型'] == 1) & df[column].notnull()]
+        fill_rows = df[(df['赤潮类型'].isin([1, 2])) & df[column].notnull()]
         fill_rows['时间差'] = abs(pd.to_datetime(fill_rows['监测时间']) - pd.to_datetime(row['监测时间']))
         fill_rows = fill_rows.sort_values(by='时间差')
         
@@ -139,14 +130,10 @@ def analysis_df(df):
     
     print("‘赤潮类型’的天数统计：")
     print(f"未发生赤潮的天数: {redtide_year.get(0, 0)}")
-    print(f"发生赤潮的天数: {redtide_year.get(1, 0)}")
+    print(f"发生赤潮的天数，类别1: {redtide_year.get(1, 0)}")
+    print(f"发生赤潮的天数，类别2: {redtide_year.get(2, 0)}")
     
-    # 打印发生赤潮的日期
-    redtide_dates = redtide_day[redtide_day == 1].index
-    print("发生赤潮的日期如下：")
-    print(redtide_dates)
-
-    redtide_year = df[df['赤潮类型'] == 1].groupby('年份')['日期'].nunique()
+    redtide_year = df[df['赤潮类型'].isin([1, 2])].groupby('年份')['日期'].nunique()
     print("每年发生赤潮的天数统计：")
     print(redtide_year)
 
@@ -156,7 +143,7 @@ def analysis_df(df):
     print("‘最大成灾面积（平方千米）’类别的天数统计：")
     print(area_day)
 
-    df.drop(columns=['日期', '年份'], inplace=True)
+    df.drop(columns=['日期','年份'], inplace=True)
 
 def filter_data(df, start, end):
     df = df[(df['监测时间'] >= start) & (df['监测时间'] < end)]
@@ -165,11 +152,11 @@ def filter_data(df, start, end):
 def split_dataset(df):
     df['年份'] = df['监测时间'].dt.year
     
-    redtide_years = df[df['赤潮类型'] == 1]['年份'].unique()
+    redtide_years = df[df['赤潮类型'] != 0]['年份'].unique()
     redtide_years.sort()
 
     test_years = redtide_years[-2:] # 选择最后的两年作为测试集
-    # print(f"测试集年份: {test_years}")
+    print(f"测试集年份: {test_years}")
     
     df_test = df[df['年份'].isin(test_years)].copy()
     df_train = df[~df['年份'].isin(test_years)].copy()
@@ -208,8 +195,6 @@ def to_ts(df):
     return sequences, labels
 
 def save_ts(sequences, labels, path, dataset_name):
-    print(sequences.shape[1])
-    print(sequences.shape[2])
     with open(path, 'w') as f:
         f.write(f'@problemName {dataset_name}\n')
         f.write('@timeStamps false\n')
@@ -229,12 +214,12 @@ def save_ts(sequences, labels, path, dataset_name):
 
 # 扰动分析
 # if __name__ == "__main__":
-#     input_train = '/root/lhq/data/data_processed_cls2/all_features/AllRedTide_TRAIN.csv'
-#     input_test = '/root/lhq/data/data_processed_cls2/all_features//AllRedTide_TEST.csv'
+#     input_train = '/root/lhq/data/data_processed_cls3/all_features/AllRedTide_TRAIN.csv'
+#     input_test = '/root/lhq/data/data_processed_cls3/all_features//AllRedTide_TEST.csv'
 #     df_train = load_file(input_train, 'csv')
 #     df_test = load_file(input_test, 'csv')
 
-#     output_dir = '/root/lhq/data/data_processed_cls2/'
+#     output_dir = '/root/lhq/data/data_processed_cls3/'
 #     train_ts = 'AllRedTide_TRAIN.ts'
 #     test_ts = 'AllRedTide_TEST.ts'
 
@@ -280,16 +265,11 @@ def save_ts(sequences, labels, path, dataset_name):
 
 #     print('################# 去掉特征 ##################')
 #     print(features_to_remove)
-#     print(len(df_train.columns))
-#     print(len(df_test.columns))
-#     view_df(df_train)
 #     df_train = df_train.drop(columns=features_to_remove)
-#     view_df(df_train)
 #     df_test = df_test.drop(columns=features_to_remove)
-#     print(len(df_train.columns))
-#     print(len(df_test.columns))
 
 #     print('################# 生成ts文件并保存 ##################')
+
 #     data_dict = {
 #         'train': (df_train, train_path),
 #         'test': (df_test, test_path)
@@ -301,8 +281,8 @@ def save_ts(sequences, labels, path, dataset_name):
 
 # 单个站点
 if __name__ == "__main__":
-    input_path = '/root/lhq/data/data_grouped_cls2/大亚湾东山.xlsx'
-    output_dir = '/root/lhq/data/data_processed_cls2/大亚湾东山_2101'
+    input_path = '/root/lhq/data/data_grouped_cls3/大亚湾东山.xlsx'
+    output_dir = '/root/lhq/data/data_processed_cls3/大亚湾东山_2101'
 
     files = {
         'train_ts': 'AllRedTide_TRAIN.ts',
@@ -317,6 +297,7 @@ if __name__ == "__main__":
     print('################# 数据名称 ##################')
     print(input_path)
     df = load_file(input_path,'excel')
+    df = df.drop(columns=['蓝绿藻'])
     print('################# 按照时间顺序排序 ##################')
     df = df.sort_values(by='监测时间')
     # view_df(df)
@@ -352,11 +333,10 @@ if __name__ == "__main__":
         sequence, label = to_ts(df)
         save_ts(sequence, label, path, 'AllRedTide')
 
-
-# 所有站点数据
+# 所有站点
 # if __name__ == "__main__":
-#     input_dir = '/root/lhq/data/data_grouped_cls2'
-#     output_dir = '/root/lhq/data/data_processed_cls2/all_features'
+#     input_dir = '/root/lhq/data/data_grouped_cls3'
+#     output_dir = '/root/lhq/data/data_processed_cls3/all_features'
 
 #     files = {
 #         'train_ts': 'AllRedTide_TRAIN.ts',
@@ -379,6 +359,9 @@ if __name__ == "__main__":
 #             print('################# 数据名称 ##################')
 #             print(base_name)
 #             df = load_file(input_path,'excel')
+#             print('################# 删除蓝绿藻列 ################')
+#             if base_name in ['大鹏湾南澳', '大鹏湾大梅沙', '大亚湾东涌','大亚湾坝光','大亚湾东山','大鹏湾下沙']:
+#                 df = df.drop(columns=['蓝绿藻'])
 #             print('################# 按照时间顺序排序 ##################')
 #             df = df.sort_values(by='监测时间')
 #             # view_df(df)

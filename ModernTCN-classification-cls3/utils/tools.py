@@ -176,29 +176,58 @@ def cal_each_class_accuracy(y_pred, y_true):
     return class_stats
 
 # 三分类计算f1
+# def cal_f1_score(y_pred, y_true, num_classes=3):
+#     y_pred = np.array(y_pred)
+#     y_true = np.array(y_true)
+    
+#     f1_scores = []
+#     TP = np.zeros(num_classes)
+#     FP = np.zeros(num_classes)
+#     FN = np.zeros(num_classes)
+    
+#     for i in range(num_classes):
+#         TP[i] = np.sum((y_pred == i) & (y_true == i))
+#         FP[i] = np.sum((y_pred == i) & (y_true != i))
+#         FN[i] = np.sum((y_pred != i) & (y_true == i))
+
+#         precision = TP[i] / (TP[i] + FP[i]) if (TP[i] + FP[i]) > 0 else 0
+#         recall = TP[i] / (TP[i] + FN[i]) if (TP[i] + FN[i]) > 0 else 0
+
+#         f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+#         f1_scores.append(f1_score)
+    
+#     return f1_scores, TP, FP, FN
 def cal_f1_score(y_pred, y_true, num_classes=3):
+    # 混淆矩阵
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
     
-    f1_scores = []
-    TP = np.zeros(num_classes)
-    FP = np.zeros(num_classes)
-    TN = np.zeros(num_classes)
-    FN = np.zeros(num_classes)
+    confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
     
-    for i in range(num_classes):
-        TP[i] = np.sum((y_pred == i) & (y_true == i))
-        FP[i] = np.sum((y_pred == i) & (y_true != i))
-        FN[i] = np.sum((y_pred != i) & (y_true == i))
-        TN[i] = np.sum((y_pred != i) & (y_true != i))
+    for true_label, pred_label in zip(y_true, y_pred):
+        confusion_matrix[true_label, pred_label] += 1
 
-        precision = TP[i] / (TP[i] + FP[i]) if (TP[i] + FP[i]) > 0 else 0
-        recall = TP[i] / (TP[i] + FN[i]) if (TP[i] + FN[i]) > 0 else 0
-
-        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-        f1_scores.append(f1_score)
+    precisions = []
+    recalls = []
     
-    return f1_scores, TP, FP, TN, FN
+    for class_label in range(num_classes):
+        TP = confusion_matrix[class_label, class_label]
+        FP = np.sum(confusion_matrix[:, class_label]) - TP
+        FN = np.sum(confusion_matrix[class_label, :]) - TP
+        
+        precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+        recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+        
+        precisions.append(precision)
+        recalls.append(recall)
+ 
+    avg_precision = np.mean(precisions)
+    avg_recall = np.mean(recalls)
+    
+    # macro F1 score
+    f1_score = 2 * (avg_precision * avg_recall) / (avg_precision + avg_recall) if (avg_precision + avg_recall) > 0 else 0
+    
+    return f1_score, confusion_matrix
 
 def sample_data(features, labels):
     labels_list = labels.values.squeeze()

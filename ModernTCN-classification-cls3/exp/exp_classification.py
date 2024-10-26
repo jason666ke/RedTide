@@ -82,10 +82,10 @@ class Exp_Classification(Exp_Basic):
         trues = trues.numpy()
 
         accuracy = cal_accuracy(predictions, trues)
-        f1,tp,fp,tn,fn = cal_f1_score(predictions, trues)
+        f1, confusion_matrix = cal_f1_score(predictions, trues)
 
         self.model.train()
-        return total_loss, accuracy, f1, tp, fp, tn, fn
+        return total_loss, accuracy, f1, confusion_matrix
 
     def train(self, setting):
         train_data, train_loader = self._get_data(flag='TRAIN')
@@ -154,16 +154,16 @@ class Exp_Classification(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            vali_loss, val_accuracy, val_f1_scores, val_tp, val_fp, val_tn, val_fn = self.vali(vali_data, vali_loader, criterion)
+            vali_loss, val_accuracy, val_f1_scores, _ = self.vali(vali_data, vali_loader, criterion)
             
-            f1_str = ", ".join([f"{score: .3f}" for score in val_f1_scores]) # 格式化 F1 分数为字符串
+            # f1_str = ", ".join([f"{score: .3f}" for score in val_f1_scores]) # 格式化 F1 分数为字符串
 
             print(
-                "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5} Vali TP: {6} Vali FP: {7} Vali TN: {8} Vali FN: {9}"
-                .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, f1_str, val_tp, val_fp, val_tn, val_fn))
+                "Epoch: {0}, Steps: {1} | Train Loss: {2:.3f} Vali Loss: {3:.3f} Vali Acc: {4:.3f} Vali F1: {5}"
+                .format(epoch + 1, train_steps, train_loss, vali_loss, val_accuracy, val_f1_scores))
             
             early_stopping(-val_accuracy, self.model, path)
-            # early_stopping(-val_f1, self.model, path) # 早停机制改为对F1敏感
+            # early_stopping(-val_f1_scores, self.model, path) # 早停机制改为对F1敏感
             if early_stopping.early_stop:
                 print("Early stopping")
                 break
@@ -208,7 +208,7 @@ class Exp_Classification(Exp_Basic):
         trues = trues.cpu().numpy()
         
         accuracy = cal_accuracy(predictions, trues)
-        f1_scores, tp, fp, tn, fn = cal_f1_score(predictions, trues)
+        f1_scores, confusion_matrix = cal_f1_score(predictions, trues)
         class_stats = cal_each_class_accuracy(predictions, trues)
 
         # result save
@@ -218,15 +218,12 @@ class Exp_Classification(Exp_Basic):
 
         print('accuracy:{}'.format(accuracy))
         print('f1 scores:{}'.format(f1_scores))
-        print('tp:{}'.format(tp))
-        print('fp:{}'.format(fp))
-        print('tn:{}'.format(tn))
-        print('fn:{}'.format(fn))
+        print('confusion matrix:{}'.format(confusion_matrix))
         f = open("result_classification.txt", 'a')
         f.write(setting + "  \n")
         f.write('accuracy:{}'.format(accuracy))
         f.write('f1 score: {}\n'.format(f1_scores))
-        f.write('tp: {}\nfp: {}\ntn: {}\nfn: {}\n'.format(tp, fp, tn, fn))
+        f.write('confusion matrix: {}\n'.format(confusion_matrix))
         f.write('\n')
         f.write('\n')
         f.close()
