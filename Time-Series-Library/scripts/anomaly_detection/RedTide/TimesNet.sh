@@ -1,19 +1,19 @@
 python -u run.py \
   --task_name anomaly_detection \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/RedTide \
   --model_id RedTide \
   --model TimesNet \
-  --data PSM \
+  --data RedTide \
   --features M \
   --seq_len 24 \
   --pred_len 0 \
   --d_model 64 \
   --d_ff 64 \
   --e_layers 2 \
-  --enc_in 1 \
-  --c_out 1 \
+  --enc_in 10 \
+  --c_out 10 \
   --top_k 3 \
   --anomaly_ratio 1 \
-  --batch_size 32 \
+  --batch_size 4 \
   --train_epochs 3

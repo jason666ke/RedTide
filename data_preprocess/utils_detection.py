@@ -179,6 +179,30 @@ def to_csv(df):
 
     return feature_df, label_df
 
+def to_npy(df):
+
+    # 任务一npy
+    save_cols = [
+        '风速', '气温', '相对湿度', '气压', '水温', '电导率', '盐度', 'ph',  '溶解氧', '叶绿素a', '赤潮类型'
+    ]
+    
+    df = df[save_cols]
+
+    new_cols = {'赤潮类型': 'label'}
+    features_cols = [col for col in save_cols if col not in ['赤潮类型']]
+    new_cols.update({col: f"feature_{i}" for i, col in enumerate(features_cols)})
+
+    df.rename(columns=new_cols, inplace=True)
+
+    # 切分
+    feature_cols = [col for col in df.columns if col.startswith('feature_')]
+    label_col = 'label'
+
+    feature_df = df[feature_cols]
+    label_df = df[label_col]
+
+    return feature_df, label_df
+
 # 单个站点
 # if __name__ == "__main__":
 #     input_path = '/root/lhq/data/data_grouped_cls2/大亚湾东山.xlsx'
@@ -226,7 +250,10 @@ if __name__ == "__main__":
     files = {
         'train_csv': 'train.csv',
         'test_csv': 'test.csv',
-        'test_label_csv': 'test_label.csv'
+        'test_label_csv': 'test_label.csv',
+        'train_npy': 'train.npy',
+        'test_npy': 'test.npy',
+        'test_label_npy': 'test_label.npy'
     }
 
     paths = {key: os.path.join(output_dir, filename) for key, filename in files.items()}
@@ -257,11 +284,11 @@ if __name__ == "__main__":
         print('################# 以小时为单位进行采样 ##################')
         df = downsampling(df)
         # view_df(df)
-        print('################# 添加时间戳 ##################')
+        # print('################# 添加时间戳 ##################')
         # view_df(df)
-        num_rows = len(df)
-        df.insert(0, "timestamp", range(timestamp_start, timestamp_start + num_rows))
-        timestamp_start += num_rows
+        # num_rows = len(df)
+        # df.insert(0, "timestamp", range(timestamp_start, timestamp_start + num_rows))
+        # timestamp_start += num_rows
         # view_df(df)
         print('################# 切分数据集 ##################')
         df_train, df_test = split_dataset(df)
@@ -276,9 +303,14 @@ if __name__ == "__main__":
     print('################# 生成文件并保存 ##################')
     final_train = pd.concat(df_tmp_train)
     final_test = pd.concat(df_tmp_test)
-    train, _ = to_csv(final_train)
-    test, test_label = to_csv(final_test)
+    # train, _ = to_csv(final_train)
+    train, _ = to_npy(final_train)
+    # test, test_label = to_csv(final_test)
+    test, test_label = to_npy(final_test)
     view_df(train)
-    train.to_csv(paths['train_csv'], index=False)
-    test.to_csv(paths['test_csv'], index=False)
-    test_label.to_csv(paths['test_label_csv'], index=False)
+    # train.to_csv(paths['train_csv'], index=False)
+    # test.to_csv(paths['test_csv'], index=False)
+    # test_label.to_csv(paths['test_label_csv'], index=False)
+    np.save(paths['train_npy'], train.to_numpy())
+    np.save(paths['test_npy'], test.to_numpy())
+    np.save(paths['test_label_npy'], test_label.to_numpy())

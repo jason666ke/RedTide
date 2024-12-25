@@ -5,7 +5,7 @@ import argparse
 import re
 import datetime
 
-def print_file_head(file_path, num_rows=50):
+def print_csv_xlsx(file_path, num_rows=50):
     # 获取文件扩展名
     file_ext = os.path.splitext(file_path)[-1].lower()
 
@@ -24,6 +24,33 @@ def print_file_head(file_path, num_rows=50):
     print(tabulate(df.head(num_rows), headers='keys', tablefmt='grid'))
 
 
+import numpy as np
+
+def inspect_npy_file(file_path, num_samples=5):
+
+    try:
+        data = np.load(file_path)
+        
+        print(f"文件路径: {file_path}")
+        print(f"数据类型: {type(data)}")
+        print(f"数据形状: {data.shape}")
+        print(f"数据类型 (dtype): {data.dtype}")
+        
+        # 打印部分数据
+        print("\n部分数据预览:")
+        if isinstance(data, np.ndarray):
+            print(data[:num_samples])  # 打印前 num_samples 条数据
+        else:
+            print(data)  # 如果不是数组，直接打印
+        
+        return data
+    
+    except FileNotFoundError:
+        print(f"错误: 文件 {file_path} 未找到。")
+    except Exception as e:
+        print(f"加载文件时发生错误: {e}")
+
+
 # 使用argparse解析命令行参数
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Print the file.")
@@ -32,5 +59,9 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    # 打印文件内容
-    print_file_head(args.file_path, args.rows)
+    # 打印文件内容 csv, xlsx
+    # print_csv_xlsx(args.file_path, args.rows)
+
+    # 打印内容 npy
+    inspect_npy_file(args.file_path)
+
