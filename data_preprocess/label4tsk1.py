@@ -16,14 +16,25 @@ df_xlsx['日期'] = pd.to_datetime(df_xlsx['日期'])
 # filtered_data = df_xlsx[(df_xlsx['日期'].dt.year == 2022) & 
 #                         (df_xlsx['日期'].dt.month == 1) & 
 #                         (df_xlsx['海域'] == '大亚湾')]
-filtered_data = df_xlsx[(df_xlsx['日期'].dt.year == 2022) & 
+# filtered_data = df_xlsx[(df_xlsx['日期'].dt.year == 2022) & 
+#                         (df_xlsx['海域'] == '大亚湾')]
+# print(filtered_data)
+
+# # 标签范围：2022-01-01 往后300天
+# start_date = pd.Timestamp('2022-01-01')
+# end_date = start_date + pd.Timedelta(days=299)
+# date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+
+# 筛选时间从 2021 年开始且海域为“大亚湾”的数据
+filtered_data = df_xlsx[(df_xlsx['日期'].dt.year >= 2021) & 
                         (df_xlsx['海域'] == '大亚湾')]
 print(filtered_data)
 
-# 标签范围：2022-01-01 往后300天
-start_date = pd.Timestamp('2022-01-01')
-end_date = start_date + pd.Timedelta(days=299)
+# 标签范围：2021-01-01 往后600天
+start_date = pd.Timestamp('2021-01-01')
+end_date = start_date + pd.Timedelta(days=599)
 date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+
 
 # 创建空的 DataFrame 来存储标签数据
 label_data = []
