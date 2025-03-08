@@ -183,8 +183,11 @@ def to_npy(df):
 
     # 任务一npy
     save_cols = [
-        '风速', '气温', '相对湿度', '气压', '水温', '电导率', '盐度', 'ph',  '溶解氧', '叶绿素a', '赤潮类型'
+        '气温', '相对湿度', '气压', '水温', '电导率', '盐度', 'ph',  '溶解氧', '叶绿素a', '赤潮类型'
     ]
+    # save_cols = [
+    #     '叶绿素a', '赤潮类型'
+    # ]
     
     df = df[save_cols]
 
@@ -245,7 +248,9 @@ def to_npy(df):
 # 所有站点
 if __name__ == "__main__":
     input_dir = '/root/lhq/data/data_grouped_cls2'
-    output_dir = '/root/lhq/data/data_processed_detection/onlyChla'
+    # output_dir = '/root/lhq/data/data_processed_detection/onlyChla'
+    output_dir = '/root/lhq/data/data_predict/dpwxs' # 珠江口内伶仃以南单个站点
+    
 
     files = {
         'train_csv': 'train.csv',
@@ -266,8 +271,12 @@ if __name__ == "__main__":
     timestamp_start = 0
 
     for xlsx_file in xlsx_files:
-        input_path = os.path.join(input_dir, xlsx_file)
         base_name = os.path.splitext(xlsx_file)[0]
+        # 仅查看单个站点的情况
+        if base_name != '大鹏湾下沙':
+            continue
+        
+        input_path = os.path.join(input_dir, xlsx_file)
 
         print('################# 数据名称 ##################')
         print(input_path)
@@ -308,9 +317,9 @@ if __name__ == "__main__":
     # test, test_label = to_csv(final_test)
     test, test_label = to_npy(final_test)
     view_df(train)
-    # train.to_csv(paths['train_csv'], index=False)
-    # test.to_csv(paths['test_csv'], index=False)
-    # test_label.to_csv(paths['test_label_csv'], index=False)
+    train.to_csv(paths['train_csv'], index=False)
+    test.to_csv(paths['test_csv'], index=False)
+    test_label.to_csv(paths['test_label_csv'], index=False)
     np.save(paths['train_npy'], train.to_numpy())
     np.save(paths['test_npy'], test.to_numpy())
     np.save(paths['test_label_npy'], test_label.to_numpy())
