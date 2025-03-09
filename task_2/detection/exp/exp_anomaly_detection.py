@@ -303,7 +303,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
             print("pred_daily_one:     ", np.count_nonzero(pred_daily == 1))
             print(pred_daily)
 
-            
-            pd.DataFrame(pred_daily).to_csv(self.args.output_path, index=False, header=False)
+
+            pd.DataFrame(pred_daily.reshape(-1, 1)).to_csv(self.args.output_path, index=False, header=False)
 
             return

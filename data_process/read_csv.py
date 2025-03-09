@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 
-def preview_csv(file_path, rows=5):
+def preview_csv(file_path, rows=5, is_print=0):
     """
     预览CSV文件的前N行数据
     
@@ -30,6 +30,10 @@ def preview_csv(file_path, rows=5):
         print("-" * 50)
         print(df.dtypes)
         
+        # 打印表格
+        if is_print == 1:
+            print(df)
+
     except Exception as e:
         print(f"错误: 无法读取文件 - {str(e)}")
 
@@ -38,12 +42,13 @@ def main():
     parser = argparse.ArgumentParser(description='预览CSV文件内容')
     parser.add_argument('file_path', type=str, help='CSV文件路径')
     parser.add_argument('--rows', type=int, default=5, help='需要预览的行数(默认: 5)')
+    parser.add_argument('--is_print', type=int, default=0, help='是否要打印整个表格(0:否, 1:是)')
     
     # 解析命令行参数
     args = parser.parse_args()
     
     # 预览文件
-    preview_csv(args.file_path, args.rows)
+    preview_csv(args.file_path, args.rows, args.is_print)
 
 if __name__ == '__main__':
     main()
