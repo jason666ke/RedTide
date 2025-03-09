@@ -60,7 +60,7 @@ python -u run.py \
     --result_path "$RESULTS_PATH" \
     --result_file "$RESULTS_FILE" \
     --data custom \
-    --features S \
+    --features M \
     --seq_len 336 \
     --pred_len 72 \
     --ffn_ratio 16 \
@@ -71,10 +71,9 @@ python -u run.py \
     --small_size 5 \
     --dims 64 64 64 64 \
     --head_dropout 0.0 \
-    --enc_in 1 \
+    --enc_in 9 \
     --dropout 0.1 \
     --itr 1 \
-    --target "chlorophyll" \
     --train_epochs 25 \
     --batch_size 512 \
     --patience 20 \
@@ -83,4 +82,5 @@ python -u run.py \
     --learning_rate 0.0001 \
     --des Exp \
     --lradj type3 \
+    --checkpoints "./checkpoints_M/" \
     --do_predict
