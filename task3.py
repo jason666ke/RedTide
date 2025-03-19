@@ -7,12 +7,12 @@ from scipy.interpolate import interp1d
 
 ###################### 数据处理 #######################
 
-file_path = "/root/cyli/data_drop/大亚湾东山.csv"
+file_path = "/root/cyli/data_drop/深圳湾蛇口.csv"
 df = pd.read_csv(file_path)
 
 df['date'] = pd.to_datetime(df['date'])
 
-start_date = pd.to_datetime("2014-01-01 00:00:00")
+start_date = pd.to_datetime("2015-01-01 00:00:00")
 end_date = pd.to_datetime("2024-01-01 00:00:00")
 filtered_df = df[(df['date'] >= start_date) & (df['date'] < end_date)]
 
@@ -80,7 +80,7 @@ save_path = "/root/cyli/task3/dywds_task3_smooth_8760.csv"
 daily_avg = pd.read_csv(file_path)
 
 x = np.arange(len(daily_avg))  
-y = daily_avg['chlorophyll'].values  
+y = daily_avg['chlorophyll_mean'].values  
 
 # 创建插值函数
 interp_func = interp1d(x, y, kind='cubic', fill_value="extrapolate")
@@ -108,14 +108,18 @@ print(f"平滑后的曲线已保存到 {save_path}")
 
 
 ###################### 拼接 #######################
+# std_path = "/root/cyli/task3/dywds_task3_avg365.csv"
 file_path = "/root/cyli/task3/dywds_task3.csv"
 smooth_path = "/root/cyli/task3/dywds_task3_smooth_8760.csv"
 save_path = "/root/cyli/task3/dywds_final.csv"
 
 df = pd.read_csv(file_path)
+# df_std = pd.read_csv(std_path)
+
 df['date'] = pd.to_datetime(df['date'])
 df_smooth = pd.read_csv(smooth_path)
-chlorophyll_repeated = np.tile(df_smooth['chlorophyll'].values, 10)
+chlorophyll_repeated = np.tile(df_smooth['chlorophyll'].values, 9)
+# chlorophyll_std_expanded = np.tile(df_std['chlorophyll_std'], 10)
 
 get_column_statistics(df)
 get_column_statistics(df_smooth)
@@ -125,9 +129,12 @@ df = df[~((df['date'].dt.year == 2016) & (df['date'].dt.month == 2) & (df['date'
 df = df[~((df['date'].dt.year == 2020) & (df['date'].dt.month == 2) & (df['date'].dt.day == 29))]
 
 if len(df) != len(chlorophyll_repeated):
+    print(len(df))
+    print(len(chlorophyll_repeated))
     raise ValueError("df 和 df_smooth 的行数不一致，请检查数据！")
 
 df['chlorophyll_smoothed'] = chlorophyll_repeated
+# df['chlorophyll_std'] = chlorophyll_std_expanded
 df.to_csv(save_path, index=False)
 get_column_statistics(df)
 
@@ -139,9 +146,9 @@ print(f"平滑后的曲线已保存到 {save_path}")
 file_path = "/root/cyli/task3/dywds_final.csv"
 df = pd.read_csv(file_path)
 df['date'] = pd.to_datetime(df['date'])
-
-df['chlorophyll_up'] = df['chlorophyll_smoothed'] + 4.035
-df['chlorophyll_down'] = df['chlorophyll_smoothed'] - 4.035
+df['chlorophyll_smoothed'] = df['chlorophyll_smoothed']
+df['chlorophyll_up'] = df['chlorophyll_smoothed'] + 6.5
+df['chlorophyll_down'] = df['chlorophyll_smoothed'] - 6.5
 
 save_path = "/root/cyli/task3/dywds_final_with_up_down.csv"
 df.to_csv(save_path, index=False)
@@ -205,7 +212,7 @@ df = pd.read_csv(file_path)
 if not pd.api.types.is_datetime64_any_dtype(df['date']):
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     
-anomaly_exceed_300 = df[df['anomaly_area'] > 700]
+anomaly_exceed_300 = df[df['anomaly_area'] > 900]
 anomaly_exceed_300['year'] = anomaly_exceed_300['date'].dt.year
 anomaly_exceed_300['month'] = anomaly_exceed_300['date'].dt.month
 anomaly_exceed_300['day'] = anomaly_exceed_300['date'].dt.day
@@ -222,40 +229,42 @@ unique_dates[['date', 'year', 'month', 'day']].to_csv(save_path, index=False)
 
 ############################### drawing ###############################
 
-# file_path = "/root/cyli/task3/dywds_anomaly_exceed_300_dates.csv"
-# df = pd.read_csv(file_path)
-# df = df[df['year'] == 2022]
-# print(df.head(50))
-# print(df.iloc[50:100])
+file_path = "/root/cyli/task3/dywds_anomaly_exceed_300_dates.csv"
+df = pd.read_csv(file_path)
+df = df[df['year'] == 2022]
+print(df.head(50))
+print(df.iloc[50:100])
 
-# import pandas as pd
-# import matplotlib.pyplot as plt
-# import matplotlib.dates as mdates
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
-# file_path = "/root/cyli/task3/dywds_anomaly_area.csv"
-# df = pd.read_csv(file_path)
+file_path = "/root/cyli/task3/dywds_anomaly_area.csv"
+df = pd.read_csv(file_path)
 
-# df_2022 = df[(df['date'] >= '2022-03-19') & (df['date'] <= '2022-03-25')]
-# df_2022['chlorophyll_up'] = df_2022['chlorophyll_up']
-# df_2022['chlorophyll_down'] = df_2022['chlorophyll_down']
+df_2022 = df[(df['date'] >= '2022-04-08') & (df['date'] <= '2022-04-14')]
+# df_2022 = df[(df['date'] >= '2022-04-01') & (df['date'] <= '2022-04-03')]
+# df_2022['chlorophyll_smoothed'] = df_2022['chlorophyll_smoothed'] - 2
+# df_2022['chlorophyll_up'] = df_2022['chlorophyll_up'] - 0.32
+# df_2022['chlorophyll_down'] = df_2022['chlorophyll_down'] - 3.68
 
-# plt.figure(figsize=(12, 6))
+plt.figure(figsize=(12, 6))
 
-# plt.plot(df_2022['date'], df_2022['chlorophyll'], label='Smoothed Chlorophyll', color='black')
-# plt.plot(df_2022['date'], df_2022['chlorophyll_smoothed'], label='Smoothed Chlorophyll', color='blue')
-# plt.plot(df_2022['date'], df_2022['chlorophyll_up'], label='Chlorophyll WP', color='green')
-# plt.plot(df_2022['date'], df_2022['chlorophyll_down'], label='Chlorophyll Down', color='green')
+plt.plot(df_2022['date'], df_2022['chlorophyll'], label='Smoothed Chlorophyll', color='black')
+plt.plot(df_2022['date'], df_2022['chlorophyll_smoothed'], label='Smoothed Chlorophyll', color='blue')
+plt.plot(df_2022['date'], df_2022['chlorophyll_up'], label='Chlorophyll WP', color='green')
+plt.plot(df_2022['date'], df_2022['chlorophyll_down'], label='Chlorophyll Down', color='green')
 
-# plt.fill_between(df_2022['date'], df_2022['chlorophyll_up'], df_2022['chlorophyll'], where=(df_2022['chlorophyll'] > df_2022['chlorophyll_up']), color='red', alpha=0.3, label='Above Upper Bound')
-# plt.fill_between(df_2022['date'], df_2022['chlorophyll_down'], df_2022['chlorophyll'], where=(df_2022['chlorophyll'] < df_2022['chlorophyll_down']), color='red', alpha=0.3, label='Below Lower Bound')
+plt.fill_between(df_2022['date'], df_2022['chlorophyll_up'], df_2022['chlorophyll'], where=(df_2022['chlorophyll'] > df_2022['chlorophyll_up']), color='red', alpha=0.3, label='Above Upper Bound')
+plt.fill_between(df_2022['date'], df_2022['chlorophyll_down'], df_2022['chlorophyll'], where=(df_2022['chlorophyll'] < df_2022['chlorophyll_down']), color='red', alpha=0.3, label='Below Lower Bound')
 
-# plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))  # 设置日期格式
-# plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=24))  # 每10天标注一次
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))  # 设置日期格式
+plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=24))  # 每10天标注一次
 
-# plt.legend()
-# plt.xlabel('Date')
-# plt.xticks(rotation=45)
-# plt.ylabel('Chlorophyll Concentration')
-# plt.title('Chlorophyll Concentration from January to March 2022')
-# plt.savefig('./stable.pdf', dpi=300, bbox_inches='tight')
-# plt.grid(True)
+plt.legend()
+plt.xlabel('Date')
+plt.xticks(rotation=45)
+plt.ylabel('Chlorophyll Concentration')
+plt.title('Chlorophyll Concentration from January to March 2022')
+plt.savefig('./stable.pdf', dpi=300, bbox_inches='tight')
+plt.grid(True)
